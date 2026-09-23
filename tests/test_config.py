@@ -2,6 +2,7 @@
 import pytest
 from pydantic import ValidationError
 
+from assignment_1.app import app, settings
 from assignment_1.config import Settings
 
 
@@ -22,3 +23,9 @@ def test_settings_reject_debug_in_production(
     monkeypatch.setenv("APP_DEBUG", "true")
     with pytest.raises(ValidationError, match="APP_DEBUG must be false"):
         Settings(_env_file=None)
+
+
+def test_app_is_wired_to_settings() -> None:
+    """The running FastAPI app takes its title and debug flag from Settings."""
+    assert app.title == settings.name
+    assert app.debug == settings.debug
