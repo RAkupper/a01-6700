@@ -1,0 +1,190 @@
+# a01-6700
+
+An installable FastAPI service skeleton for our course ML inference API. This week it
+exposes a typed `/health` endpoint; later assignments will put a model behind it.
+
+## Contents
+
+- [Quickstart](#quickstart) (tutorial: clean machine to running service)
+- [How-to guides](#how-to-guides) (tests, linting, pre-commit, adding dependencies)
+- [Reference](#reference) (endpoints, project layout, CI pipeline)
+- [Explanation](#explanation) (why the project is structured this way)
+
+## Quickstart
+
+### 1. Prerequisites
+
+- Git
+- [uv](https://docs.astral.sh/uv/) (installs and manages Python for you, so you do
+  not need to install Python 3.13 yourself)
+
+Install uv if you do not have it:
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Restart your terminal, then confirm it works:
+
+```bash
+uv --version
+```
+
+### 2. Clone and install
+
+```bash
+git clone <REPO_URL> a01-6700
+cd a01-6700
+uv sync --extra dev --frozen
+```
+
+`--frozen` installs the exact versions pinned in `uv.lock`, so every teammate and
+the CI runner get the same environment. `--extra dev` adds ruff, pytest, mypy and
+pre-commit.
+
+### 3. Run the service
+
+```bash
+uv run --with uvicorn uvicorn assignment_1.app:app --reload
+```
+
+You should see `Uvicorn running on http://127.0.0.1:8000`.
+
+### 4. Check that it is healthy
+
+In a second terminal:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Expected response:
+
+```json
+{"status":"ok","version":"0.1.0"}
+```
+
+Interactive API docs are at <http://127.0.0.1:8000/docs>. Press `Ctrl+C` to stop the
+server.
+
+## How-to guides
+
+### Run the tests
+
+```bash
+uv run pytest
+```
+
+With a coverage report:
+
+```bash
+uv run pytest --cov=assignment_1
+```
+
+### Lint, format and type-check
+
+These are the same checks CI runs:
+
+```bash
+uv run ruff check            # lint
+uv run ruff format --check   # verify formatting (drop --check to auto-format)
+uv run mypy src/             # static type checking
+```
+
+Auto-fix most lint issues with `uv run ruff check --fix`.
+
+### Enable the pre-commit hook (once per clone)
+
+```bash
+uv run pre-commit install
+```
+
+Every `git commit` now runs ruff (lint + format) plus basic hygiene checks (large
+files, private keys, trailing whitespace, end-of-file newlines). If a hook changes a
+file, stage the change and commit again. Run all hooks on every file manually with:
+
+```bash
+uv run pre-commit run --all-files
+```
+
+### Add a dependency
+
+```bash
+uv add <package>             # runtime dependency
+uv add --optional dev <pkg>  # development tool
+```
+
+Commit both `pyproject.toml` and the updated `uv.lock` so teammates and CI stay in
+sync.
+
+## Reference
+
+### Endpoints
+
+| Method | Path      | Response model   | Description                              |
+| ------ | --------- | ---------------- | ---------------------------------------- |
+| GET    | `/health` | `HealthResponse` | Liveness check with service version     |
+| GET    | `/docs`   | HTML             | Auto-generated Swagger UI (FastAPI)      |
+
+`HealthResponse` fields:
+
+| Field     | Type          | Example   |
+| --------- | ------------- | --------- |
+| `status`  | `"ok"`        | `"ok"`    |
+| `version` | `str`         | `"0.1.0"` |
+
+### Project layout
+
+```text
+a01-6700/
+├── .github/workflows/ci.yml   # GitHub Actions quality gates
+├── .pre-commit-config.yaml    # Git hooks (ruff, hygiene checks)
+├── .python-version            # Python 3.13, read by uv and CI
+├── pyproject.toml             # metadata, dependencies, tool config
+├── uv.lock                    # pinned, shared environment
+├── src/assignment_1/
+│   ├── __init__.py
+│   ├── app.py                 # FastAPI app, Pydantic models, routes
+│   └── main.py                # CLI entry-point placeholder
+└── tests/
+    └── test_health.py         # /health endpoint tests
+```
+
+### Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and pull request, on `ubuntu-latest`:
+
+1. Check out the repository
+2. Install Python (version from `.python-version`)
+3. Install uv and run `uv sync --extra dev --frozen`
+4. `uv run ruff check` and `uv run ruff format --check`
+5. `uv run mypy src/`
+6. `uv run pytest`
+
+A failure at any step fails the run. See results under the repository's
+**Actions** tab.
+
+## Explanation
+
+- **src/ layout.** Tests import the installed package rather than files that happen
+  to sit next to them, which catches packaging mistakes early.
+- **pyproject.toml + hatchling.** One standard file declares the build backend,
+  dependencies and tool settings; no `setup.py`.
+- **uv.lock.** A committed lockfile makes installs reproducible across laptops, CI
+  and, later, our Jetstream2 deployment.
+- **Quality gates in two places.** pre-commit stops problems before they are
+  committed; CI enforces the same checks for everyone, so the main branch stays
+  green.
+
+## Troubleshooting
+
+- **`uv: command not found`**: restart your terminal after installing uv, or add
+  `~/.local/bin` to your `PATH`.
+- **`uv sync --frozen` fails saying the lockfile is out of date**: someone edited
+  `pyproject.toml` without committing `uv.lock`. Run `uv lock`, then commit
+  `uv.lock`.
+- **Port 8000 already in use**: add `--port 8001` to the run command.

@@ -1,3 +1,5 @@
+"""FastAPI application: service instance, response models and routes."""
+
 from typing import Literal
 
 from fastapi import FastAPI
