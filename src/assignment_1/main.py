@@ -1,4 +1,5 @@
-def main():
+def main() -> None:
+    """Entry-point placeholder; not wired into the FastAPI service."""
     print("Hello from assignment-1!")
 
 
