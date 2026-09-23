@@ -16,3 +16,8 @@ wheels/
 
 # Scratch
 _to_delete/
+
+# Local config files
+.env
+.env.*
+!.env.*.example
