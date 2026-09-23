@@ -3,7 +3,10 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-app = FastAPI(title="a01-6700", version="0.1.0")
+from assignment_1.config import Settings
+
+settings = Settings()
+app = FastAPI(title=settings.name, version="0.1.0", debug=settings.debug)
 
 
 class HealthResponse(BaseModel):
