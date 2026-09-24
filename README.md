@@ -37,7 +37,7 @@ uv --version
 ### 2. Clone and install
 
 ```bash
-git clone <REPO_URL> a01-6700
+git clone https://github.com/RAkupper/a01-6700.git a01-6700
 cd a01-6700
 uv sync --extra dev --frozen
 ```
@@ -48,8 +48,16 @@ pre-commit.
 
 ### 3. Run the service
 
+To use the local development settings, copy the example to `.env`:
+
 ```bash
-uv run --with uvicorn uvicorn assignment_1.app:app --reload
+cp .env.local.example .env
+```
+
+Then start the service:
+
+```bash
+uv run uvicorn assignment_1.app:app --reload
 ```
 
 You should see `Uvicorn running on http://127.0.0.1:8000`.
@@ -122,6 +130,19 @@ Commit both `pyproject.toml` and the updated `uv.lock` so teammates and CI stay 
 sync.
 
 ## Reference
+
+### Configuration
+
+`Settings` in `src/assignment_1/config.py` reads environment variables and the
+`.env` file in the working directory. Environment variables take precedence over
+`.env`; missing values use the defaults below.
+
+| Variable | Default | Meaning and validation |
+| -------- | ------- | ---------------------- |
+| `APP_NAME` | `a01-6700` | Application title; must not be empty or whitespace-only. |
+| `APP_ENVIRONMENT` | `development` | Must be `development` or `production`. |
+| `APP_DEBUG` | `false` | Boolean debug flag; must be `false` in production. |
+
 
 ### Endpoints
 
